@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<script  src="jquery.js"></script>
+
+<script>
+$(document).ready(function() {
+
+	
+	//Main method, it makes the crawler Start
+	$('#form1').submit(function(){
+
+		//Receive all variables from form
+		var url = document.getElementById('urltxt').value;
+		var rurl = document.getElementById('rurltxt').value;
+		var maxrequest = document.getElementById('maxrtxt').value;
+		var webdb = document.getElementById('webdbtxt').value;
+		var user = document.getElementById('usertxt').value;
+		var pass = document.getElementById('pastxt').value;
+
+		var myregex =new RegExp("^(http:\/\/){1}([0-9A-Za-z]+\.)");//REGEX to check if the url submited is valid
+
+		if(myregex.test(url))//URL validation
+		{
+			if(webdb !=''){//DB validation
+				if(user !='' ){//User field validation
+					if(pass !='' ){//Password validation
+					
+	
+			$('#info').html('');
+			$('#info').append('Crawler is RUNNING');
+			
+			
+			//Ajax request to start the server
+			 $.ajax({
+					url: '../Crawler/iwebcrawler',
+					type: 'POST',
+					dataType : 'json',
+					data: {webdb:webdb,user:user,pass:pass,action:'testCon'},
+					error : function(){alert('error')},
+					success : function(data){  
+
+						if(data != "OK"){//IF no connection is available with the LOGIN info supplied
+							
+							$('#info').html('');
+						    $('#info').append('Conection not Available (Invalid User/Passwors/DB URL)');  //DIV message of status    
+						    }else{	
+								window.open('ControlPanel.html');//IF a connection has been establish it will open the control panel
+								 $.ajax({
+										url: '../Crawler/iwebcrawler',
+										type: 'POST',
+										dataType : 'json',
+										data: {url: url,rurl:rurl,maxrequest:maxrequest,webdb:webdb,user:user,pass:pass,action:'start'},// Paramaters send to the servlet
+										error : function(){alert('error')},
+										success : function(data){  
+
+												
+											          $('#info').html('');
+											          $('#info').append('Crawler has FINISHED RUNNING');//DIV message of crawler status  
+											   
+										   }
+							      });   
+						   }
+					   }
+				   });
+
+		}else{alert("PASSWORD Field Required");}
+		}else{alert("USER Field Required");}
+		}else{alert("WEB URL Required");}
+		}else{alert("Invalid URL");}
+		
+	
+
+
+  	 });
+	
+	//It will test if the DB info inserted is correct
+	$('#test').click(function(){
+           // receive variables from form
+		var webdb = document.getElementById('webdbtxt').value;
+		var user = document.getElementById('usertxt').value;
+		var pass = document.getElementById('pastxt').value;
+		       
+			if(webdb !=''){//DB validation
+				if(user !='' ){//User validation
+					if(pass !='' ){//Password validation
+			$('#info').html('');
+			$('#info').append('Testing Conection'); //Message DIV
+			 $.ajax({
+				url: '../Crawler/iwebcrawler',
+				type: 'POST',
+				dataType : 'json',
+				data: {webdb:webdb,user:user,pass:pass,action:'testCon'},//Parameters send to the servlet
+				error : function(){alert('error')},
+				success : function(data){
+					
+                      	if(data == 'NOCON'){// If no connection is available
+                      		data ='';
+					    data ='Conection not Available (Invalid User/Passwors/DB URL)'; }// Message DIV
+		             		$('#info').html('');
+		        			$('#info').append('Testing Finish  the connection test was : '+ data);    // Message DIV Connection Test Succesfull
+		                     
+				   }
+			   });
+		}else{alert("PASSWORD Field Required");}
+		}else{alert("USER Field Required");}
+		}else{alert("WEB URL Required");}
+	
+		
+		
+	});
+	
+	//Only Numbers allowed in the Max number of request values, if non supplied the default value in the Java Bean is 3
+	$('#maxrtxt').live('keyup', function(e) {
+		  $(this).val($(this).val().replace(/[^0-9]/g, ''));
+		});
+	
+});
+
+
+
+
+
+</script>
+
+
+<title>Crawler</title>
+</head>
+
+<body>
+<h1>Intelligent Web</h1>
+<form name="form1" id="form1" onsubmit="return false">
+
+<table id="tabl1">
+<tr>
+<td>URL : </td><td><input type="text" name="urltxt" id="urltxt" style="width: 300px; "></td><td><p>http://intelweb.dcs.shef.ac.uk/~u0082/intelweb2</p></td>
+</tr>
+<tr>
+<td>RESTRICT URL : </td><td><input type="text" name="rurltxt" id="rurltxt" style="width: 300px; "></td>
+</tr>
+<tr>
+<td>Maximum number of requests ? : </td><td><input type="text" name="maxrtxt" id="maxrtxt" value="3" style="width: 30px;"></td> 
+</tr>
+
+<tr>
+<th>LogIn Info </th>
+</tr>
+<tr>
+<td>Web Database : </td><td><input type="text" name="webdbtxt" id="webdbtxt" style="width: 300px;"></td>
+</tr>
+<tr>
+<td>User: </td><td><input type="text" name="usertxt" id="usertxt"></td>  
+</tr>
+<tr>
+<td>Password : </td><td><input type="text" name="pastxt" id="pastxt"></td>
+</tr>
+<tr>
+<td><input type="submit" value="Start" style="width: 177px; "></td>
+<td><input type="button" value="Test Conection" id="test" style="width: 177px; "></td>
+</tr>
+</table>
+
+</form>
+
+<DIV id="info">
+<a href="ControlPanel.html" target="_blank">Control Panel</a>
+ </DIV>
+<a href="ControlPanel.html"></a>
+</body>
+</html>

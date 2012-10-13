@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<script src="jquery.js"> </script>
+
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+	//It uses Ajax to display the new results
+$('#display').click(function(){
+	$.ajax({
+			url: '../Crawler/iwebcrawler',
+			type: 'POST',
+			data: {action:'display'},
+	        dataType: 'json',
+	    	error : function(){alert('error  display')},
+			success : function(data){
+
+				
+				if(data == 'NOCON'){
+					
+					var html = '';
+					
+					$('#info').html('');
+				    $('#info').append('Conection not Available (Invalid User/Passwors/DB URL)'); //Displays DIV with Result of test Connection
+				    
+				    document.getElementById("login").style.visibility = 'visible';//if no connection is available it makes the DIV with the login form visible
+				    
+					
+					
+				}else{
+				  var html = '';
+                             //Print the table
+				  for (var i = 0; i < data.length; i++) { 
+					  html += '<TR><TD>URL</TD><TD>'+data[i].url+'</TD></TR>';
+					  html += '<TR><TD>TITLE</TD><TD>'+data[i].title+'</TD></TR>';
+					  html += '<TR><TD>LAST MODIFICATION</TD><TD>'+data[i].lastpagemodified+'</TD></TR>';
+					  html += '<TR><TD>LAST VISIT</TD><TD>'+data[i].lastcrawl+'</TD></TR>';    
+					  html += '<hr/>';
+				  }
+				//Remove old data  
+			      $('#tableLinksHistory tr').remove();
+				$('#tableLinksHistory').append(html);
+				html = '';
+				
+				//Print the table
+				
+				  for (var i =document.getElementById("cont").value; i < data.length; i++) { 
+					  html += '<TR><TD>URL</TD><TD>'+data[i].url+'</TD></TR>';
+					  html += '<TR><TD>TITLE</TD><TD>'+data[i].title+'</TD></TR>';
+					  html += '<TR><TD>LAST MODIFICATION</TD><TD>'+data[i].lastpagemodified+'</TD></TR>';
+					  html += '<TR><TD>LAST VISIT</TD><TD>'+data[i].lastcrawl+'</TD></TR>';    
+					  html += '<hr/>';
+				  }
+				  
+				  if (data.length>0){
+			          document.getElementById("cont").value = data.length;
+			      }
+				//Remove old data  
+			    $('#tableLinks tr').remove();
+				$('#tableLinks').append(html);
+			}
+
+			}
+	     });
+	});
+	
+
+//Uses ajax to Pause the crawler 
+	$('#pause').click(function(){ 
+	 document.getElementById("resume").disabled = false;//disable button
+	 document.getElementById("pause").disabled = true;//disable button
+	   $.ajax({ 
+		   url: '../Crawler/iwebcrawler',
+		   type: 'POST',
+		   dataType : 'json',
+		   data: {action : 'pause'},
+		   error : function(){alert('error  pause')},
+		   success : function(data){$('#info').html(''); $('#info').append('Crawler has been PAUSED');}//Changes the DIV where the status of the crawler is displayed
+		
+	   });
+	});
+	
+		$('#resume').click(function(){ 
+		document.getElementById("pause").disabled = false;//disable button
+		document.getElementById("resume").disabled = true;//disable button
+	   $.ajax({ 
+		   url: '../Crawler/iwebcrawler',
+		   type: 'POST',
+		   dataType : 'json',
+		   data: {action : 'resume'},
+		   error : function(){alert('error  resume')},
+		   success : function(data){$('#info').html(''); $('#info').append('Crawler has RESUMED');}//Changes the DIV where the status of the crawler is displayed
+		
+	   });
+	});
+	
+	 $('#stop').click(function(){ 
+		 
+		 document.getElementById("resume").disabled = true;//disable button
+		 document.getElementById("pause").disabled = true;//disable button
+	   $.ajax({ 
+		   url: '../Crawler/iwebcrawler',
+		   type: 'POST',
+		   dataType : 'json',
+		   data: {action : 'stop'},
+		   error : function(){alert('error  stop')},
+		   success : function(data){$('#info').html(''); $('#info').append('Crawler has been STOPED');}//Changes the DIV where the status of the crawler is displayed
+		
+	   });
+	});
+	
+	 
+	 //Will export all the data to the TXT files
+	 $('#Export').click(function(){	
+		 
+		 
+		 
+		 
+		 $.ajax({
+				url: '../Crawler/iwebcrawler',
+				type: 'POST',
+				dataType : 'json',
+				data: {action:'testCon'},
+				error : function(){alert('error  Valid')},
+				success : function(data){
+					
+					if(data == 'NOCON'){
+						
+						var html = '';
+						
+						$('#info').html('');
+					    $('#info').append('Conection not Available (Invalid User/Passwors/DB URL)'); //Changes the DIV where the status of the crawler is displayed
+					   
+	                    document.getElementById("login").style.visibility = 'visible';//Show Login DIV						
+					}
+					else{
+						
+						 window.open("save.jsp?filename=Valid.txt&option=history"); //open JSP to create TXT of Valid table
+		                 window.open("save.jsp?filename=Invalid.txt&option=invalid");//open JSP to create TXT of invalid table
+		                 window.open("save.jsp?filename=External.txt&option=external");//open JSP to create TXT of External table
+					}
+        
+				 }
+		 });
+	   });
+
+	 //Creates new connection, ifthe data is wrong it will display new message in the DIV
+	 $('#connect').click(function(){
+
+			var webdb = document.getElementById('webdbtxt').value;
+			var user = document.getElementById('usertxt').value;
+			var pass = document.getElementById('pastxt').value;
+			
+				if(webdb !=''){// DB info validation
+					if(user !='' ){// DB info validation
+						if(pass !='' ){// DB info validation
+				$('#info').html('');
+				$('#info').append('Testing Conection');
+				 $.ajax({
+					url: '../Crawler/iwebcrawler',
+					type: 'POST',
+					dataType : 'json',
+					data: {webdb:webdb,user:user,pass:pass,action:'testCon'},
+					error : function(){alert('error  connect')},
+					success : function(data){
+						if(data == 'NOCON')(data ='', data ='Conection not Available (Invalid User/Passwors/DB URL)');//Changes the DIV where the status of the crawler is displayed
+			             		$('#info').html('');
+			        			$('#info').append('Connection  : '+ data);    
+			                     
+					   }
+				   });
+			}else{alert("PASSWORD Field Required");}
+			}else{alert("USER Field Required");}
+			}else{alert("WEB URL Required");}
+		
+			
+			
+		});
+
+	
+});
+
+</script>
+<title>Control Panel</title>
+</head>
+<body>
+
+
+
+<TABLE>
+<TR>
+<TD>
+ <P> ALL LINKS</P>
+<DIV id="divLinksHistory"  style="overflow: auto; width: 400px; height: 400px; font-family: ARIAL;font-size: 10px">
+<TABLE id="tableLinksHistory" >
+<TR><TD></TD><TD></TD></TR>
+</TABLE>
+</DIV>
+</TD>
+<TD>
+<P>RECENTLY DISPLAYED LINKS</P>
+<DIV id="divLinks"  style="overflow: auto; width: 400px; height: 400px;font-family: ARIAL;font-size: 10px">
+<TABLE id="tableLinks" >
+<TR><TD></TD><TD></TD></TR>
+</TABLE>
+</DIV>
+
+</TD>
+</TR>
+</TABLE>
+<form>
+<input type="hidden" name="cont" id="cont" value="0">
+<input type="button" name="display" id="display" value="Display">
+<input type="button" name="resume" id="resume" value="Resume" disabled="disabled">
+<input type="button" name="pause" id="pause" value="Pause">
+<input type="button" name="stop" id="stop" value="Stop">
+
+<table>
+<tr>
+<td>Export Results to a TXT FILE</td>
+<td><input type="button" name="Export" id="Export" value="Export"></td>
+</tr>
+</table>
+</form>
+
+<DIV id="info"> </DIV>
+<DIV id="login"  style="visibility: hidden">
+	<form>
+			    <table>
+					  <tr>
+					    <th>LogIn Info </th>
+					    </tr>
+					    <tr>
+					   <td>Web Database : </td><td><input type="text" name="webdbtxt" id="webdbtxt" style="width: 300px;"></td>
+					    </tr>
+					    <tr>
+					   <td>User: </td><td><input type="text" name="usertxt" id="usertxt"></td>
+					   </tr>
+					 <tr>
+					    <td>Password : </td><td><input type="text" name="pastxt" id="pastxt"></td>
+					   </tr>
+					    <tr>
+					   <td><input type="button" value="Connect to DB" id="connect" style="width: 177px;"></td>
+					  </tr>
+					  </table>
+					 </form>
+
+ </DIV>
+
+</body>
+</html>
